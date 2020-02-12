@@ -5,7 +5,7 @@ export default function LeaderBoard({ items }) {
     <div className={styles.wrapper}>
       <ul className={styles.list}>
         {items.map(item => (
-          <li className={styles.listItem}>
+          <li key={item.id} className={styles.listItem}>
             <div className={styles.dataWrap}>
               <span className={styles.winner}>{item.winner}</span>
               <span className={styles.date}>{item.date}</span>

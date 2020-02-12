@@ -42,11 +42,39 @@ export default class App extends Component {
 
   handlePlay = (e) => {
     e.preventDefault();
-    setInterval(() => {
-      const randomNumber = this.randomInteger(1, 16);
+    // const itemField = document.querySelector(".gameFieldsList li:nth-child(1)")
+    // itemField.classList.add("active")
+
+    const timer = setInterval(() => {
+      const allItems = document.querySelectorAll('.gameFieldsList li');
+      console.log(allItems)
+
+      const items = Array.from(allItems, x => { if (x.classList.contains("active")) return (true); else return (false) });
+      console.log("items", items);
+
+      const indexes = items.reduce((acc, value, ind) => {
+        if (value === false) {
+          acc.push(ind + 1);
+          return acc
+        }
+        return acc
+      }, []);
+
+      console.log(indexes);
+
+      let randomNumber = 1;
+      if (indexes.length !== 0) {
+        do {
+          randomNumber = this.randomInteger(1, 16)
+        } while (!(indexes.some(num => num === randomNumber)));
+      }
+      if (indexes.length === 0) { clearInterval(timer) }
+
+      // const randomNumber = this.randomInteger(1, 16);
+
       const selector = `.gameFieldsList li:nth-child(${randomNumber})`
       const itemField = document.querySelector(selector)
-      if(itemField.classList.contains("active")){
+      if (itemField.classList.contains("active")) {
         return
       }
       itemField.classList.add("active")
