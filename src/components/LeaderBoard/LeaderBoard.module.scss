@@ -1,0 +1,29 @@
+.wrapper {
+  margin: 0 auto;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.listItem {
+  list-style: none;
+  width: 100%;
+}
+
+.dataWrap {
+  display: flex;
+  justify-content: space-between;
+  width:350px;
+}
+
+.winner {
+  display: block;
+}
+
+.date {
+  display: block;
+}

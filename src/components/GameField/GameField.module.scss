@@ -1,0 +1,24 @@
+.wrapper {
+  margin: 0 auto;
+}
+
+
+:global(.gameFieldsList) {
+  display: flex;
+  flex-wrap: wrap;
+  width: 160px;
+  margin: 0 auto;
+}
+
+:global(.gameFieldItem) {
+  list-style: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgb(19, 184, 55);
+  background-color: #fff;
+}
+
+:global(.gameFieldItem.active) {
+  background-color: rgb(24, 44, 224);
+}
+

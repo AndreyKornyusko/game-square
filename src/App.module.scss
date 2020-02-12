@@ -1,0 +1,21 @@
+.appWrap {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.mainWrap {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.gameWrap {
+  width: 70%;
+}
+
+.resutlsWrap {
+  width: 30px;
+}
