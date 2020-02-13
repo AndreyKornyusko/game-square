@@ -2,20 +2,17 @@ import React from 'react';
 import Select from 'react-select';
 import styles from './Select.module.scss'
 
-// const options = [
-//   { value: 'chocolate', label: 'Chocolate' },
-//   { value: 'strawberry', label: 'Strawberry' },
-//   { value: 'vanilla', label: 'Vanilla' },
-// ];
 
 
-export default function ReactSelect({ value, handleChange, options }) {
+export default function ReactSelect({ value, handleChange, options, name }) {
   return (
     <div className={styles.wrapper}>
       <Select
-        value={value}
+        defaultValue={{ label: "Pick game mode", value: 0 }}
+        // value={value}
         onChange={handleChange}
         options={options}
+        name={name}
       />
     </div>
   )

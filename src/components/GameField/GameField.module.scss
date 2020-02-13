@@ -22,7 +22,10 @@
   background-color: rgb(24, 44, 224);
 }
 
+:global(.gameFieldItem.notclicked) {
+  background-color: rgb(236, 29, 14);
+}
 
-// :global(.gameFieldsList li:nth-child(1)){
-//   background-color: rgb(24, 44, 224);
-// }
+:global(.gameFieldItem.clicked) {
+  background-color: rgb(19, 184, 55);
+}
