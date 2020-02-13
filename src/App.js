@@ -48,7 +48,10 @@ const INITIAL_STATE = {
   isWinnerPosted: false,
   label: 'play',
   isGameInProgress: false,
-  clearCycle: false
+  clearCycle: false,
+  userPoints: 0,
+  computerPoints: 0
+
 }
 
 export default class App extends Component {
@@ -102,11 +105,11 @@ export default class App extends Component {
       })
   }
 
-  getWinners=()=>{
+  getWinners = () => {
     API.getWinners()
-    .then(data => {
-      this.setState({ leaderBoardItems: data })
-    })
+      .then(data => {
+        this.setState({ leaderBoardItems: data })
+      })
   }
 
   handleGameFieldClick = (e) => {
@@ -152,7 +155,6 @@ export default class App extends Component {
   postWinner = (jsonForServer) => {
     API.postWinner(jsonForServer)
       .then(response => {
-        console.log('post response', response);
         if (response.status === 200) {
           this.setState({
             isWinnerPosted: true,
@@ -170,6 +172,19 @@ export default class App extends Component {
       date
     }
     return jsonForServer
+  }
+
+  stopGame = (timer, allItems, winner) => {
+    clearInterval(timer);
+    this.setState({
+      winner: winner,
+      isGameFinished: true,
+      isGameInProgress: false
+    })
+    allItems.forEach(item => {
+      item.classList.remove("active");
+    })
+
   }
 
   handlePlay = (e) => {
@@ -219,28 +234,22 @@ export default class App extends Component {
       }
 
       if ((allClickedItemsLength * 100 / allItemsLength) > 50 &&
-        allItemsLength !== 0) {
-        clearInterval(timer);
+        allClickedItemsLength > allNotClickedItemsLength) {
+        const { gamer } = this.state
+        this.stopGame(timer, allItems, gamer)
         this.setState({
-          winner: this.state.gamer,
-          isGameFinished: true,
-          isGameInProgress: false
-        })
-        allItems.forEach(item => {
-          item.classList.remove("active");
+          userPoints: allClickedItemsLength,
+          computerPoints: allNotClickedItemsLength
         })
       }
 
       if ((allNotClickedItemsLength * 100 / allItemsLength) > 50 &&
-        allItemsLength !== 0) {
-        clearInterval(timer);
+        allClickedItemsLength < allNotClickedItemsLength) {
+        const winner = "Computer"
+        this.stopGame(timer, allItems, winner)
         this.setState({
-          winner: "Computer",
-          isGameFinished: true,
-          isGameInProgress: false
-        })
-        allItems.forEach(item => {
-          item.classList.remove("active");
+          userPoints: allClickedItemsLength,
+          computerPoints: allNotClickedItemsLength
         })
       }
 
@@ -262,12 +271,12 @@ export default class App extends Component {
         itemField.classList.add("active")
       }, 2)
 
-      if (!itemField.classList.contains("clicked")) {
-        setTimeout(() => {
-          if (this.state.isGameFinished === true) return
-          itemField.classList.add("notclicked")
-        }, delay)
-      }
+      setTimeout(() => {
+        if (itemField.classList.contains("clicked")) return
+        if (this.state.isGameFinished === true) return
+        itemField.classList.add("notclicked")
+      }, delay)
+
 
     }, delay);
 
@@ -302,14 +311,16 @@ export default class App extends Component {
       mode,
       fieldWidth,
       label,
-      winner
+      winner,
+      userPoints,
+      computerPoints
     } = this.state;
 
     return (
       <div className={styles.appWrap}>
+        <h1 className={styles.title}>MAGIC SQUARE</h1>
         <div className={styles.mainWrap}>
           <div className={styles.gameWrap}>
-            <h1 className={styles.title}>MAGIC SQUARE</h1>
             <ControlPanel
               handlePlay={this.handlePlay}
               label={label}
@@ -320,8 +331,30 @@ export default class App extends Component {
               handleInputChange={this.handleInputChange}
             />
             {isGameFinished ?
-              <h2 className={styles.gameResults}>{winner} wins!</h2> :
-              <h2 className={styles.gameResults}> </h2>
+              <div className={styles.mainResults}>
+                <div className={styles.gameResults}>{winner} wins!</div>
+                <div className={styles.resultsContainer}>
+                  <div className={styles.mainPoinsWrap}>
+                    <div className={styles.poinsWrap}>
+                      <div className={styles.userName}>
+                        {gamer}
+                      </div>
+                      <div className={styles.points}>
+                        {userPoints}
+                      </div>
+                    </div>
+                    <div className={styles.poinsWrap}>
+                      <div className={styles.userName}>
+                        Computer
+                     </div>
+                      <div className={styles.points}>
+                        {computerPoints}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div> :
+              <div className={styles.mainResults}></div>
             }
             <GameField
               fieldWidth={fieldWidth}
