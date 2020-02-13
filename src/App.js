@@ -332,12 +332,12 @@ export default class App extends Component {
             />
             {isGameFinished ?
               <div className={styles.mainResults}>
-                <div className={styles.gameResults}>{winner} wins!</div>
+                <div className={styles.gameResults}>{winner===''? "User": winner} wins!</div>
                 <div className={styles.resultsContainer}>
                   <div className={styles.mainPoinsWrap}>
                     <div className={styles.poinsWrap}>
                       <div className={styles.userName}>
-                        {gamer}
+                        {winner===''? "User": winner}
                       </div>
                       <div className={styles.points}>
                         {userPoints}
