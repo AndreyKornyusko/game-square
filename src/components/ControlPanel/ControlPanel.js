@@ -10,7 +10,8 @@ export default function ControlPanel({
   handleCategoryChange,
   options,
   inputValue,
-  handleInputChange
+  handleInputChange,
+  label
 
 }) {
   return (
@@ -31,6 +32,7 @@ export default function ControlPanel({
           />
           <Button
             handleSubmit={handlePlay}
+            label={label}
           />
         </div>
       </form>

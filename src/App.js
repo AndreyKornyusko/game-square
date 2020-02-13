@@ -5,36 +5,55 @@ import GameField from './components/GameField/GameField';
 import LeaderBoard from './components/LeaderBoard/LeaderBoard';
 import * as API from './services/api';
 
+const INITIAL_STATE = {
+  gameFieldItems: [
+    { id: 1 },
+    { id: 2 },
+    { id: 3 },
+    { id: 4 },
+    { id: 5 },
+    { id: 6 },
+    { id: 7 },
+    { id: 8 },
+    { id: 9 },
+    { id: 10 },
+    { id: 11 },
+    { id: 12 },
+    { id: 13 },
+    { id: 14 },
+    { id: 15 },
+    { id: 16 },
+    { id: 17 },
+    { id: 18 },
+    { id: 19 },
+    { id: 20 },
+    { id: 21 },
+    { id: 22 },
+    { id: 23 },
+    { id: 24 },
+    { id: 25 }
+  ],
+  fieldWidth: 150,
+  delay: 2000,
+  leaderBoardItems: [
+    { id: 1, winner: "", date: "" },
+  ],
+  gamer: "User",
+  winner: '',
+  mode: { value: '5', label: 'easyMode', delay: 2000 },
+  options: [
+    { value: '5', label: 'easyMode' },
+  ],
+  isGameFinished: false,
+  isWinnerPosted: false,
+  label: 'play',
+  isGameInProgress: false,
+  clearCycle: false
+}
+
 export default class App extends Component {
   state = {
-    gameFieldItems: [
-      { id: 1 },
-      { id: 2 },
-      { id: 3 },
-      { id: 4 },
-      { id: 5 },
-      { id: 6 },
-      { id: 7 },
-      { id: 8 },
-      { id: 9 },
-      { id: 10 },
-      { id: 11 },
-      { id: 12 },
-      { id: 13 },
-      { id: 14 },
-      { id: 15 },
-      { id: 16 },
-    ],
-    leaderBoardItems: [
-      { id: 1, winner: "User", date: "05:39; 12 February 2020" },
-      { id: 2, winner: "Computer", date: "05:39; 12 February 2020" },
-    ],
-    gamer: "",
-    mode: "",
-    options: [
-      { value: '5', label: 'easyMode' },
-    ],
-    isGameFinished: false,
+    ...INITIAL_STATE
   }
 
   componentDidMount() {
@@ -54,7 +73,9 @@ export default class App extends Component {
         }, []);
         console.log('options', options);
 
-        this.setState({ options })
+        this.setState({
+          options,
+        })
 
       })
     API.getWinners()
@@ -63,6 +84,36 @@ export default class App extends Component {
         this.setState({ leaderBoardItems: data })
       })
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.isWinnerPosted !== this.state.isWinnerPosted) {
+      API.getWinners()
+        .then(data => {
+          console.log('winners data', data);
+          this.setState({ leaderBoardItems: data })
+        })
+    }
+
+    if (prevState.mode !== this.state.mode) {
+      const arrayLength = this.state.mode.value * this.state.mode.value
+      const fildsNumber = Array.from(new Array(arrayLength), (x, i) => i + 1)
+      const gameFieldItems = fildsNumber.map(item => ({ id: item }))
+      this.setState({
+        gameFieldItems,
+        fieldWidth: this.state.mode.value * 30,
+        delay: this.state.mode.delay
+      })
+    }
+
+    if (prevState.isGameFinished !== this.state.isGameFinished) {
+      this.setState({
+        label: 'play again',
+        clearCycle: true
+      })
+    }
+
+  }
+
 
   handleGameFieldClick = (e) => {
     const target = e.target
@@ -80,21 +131,33 @@ export default class App extends Component {
   handlePlay = (e) => {
     e.preventDefault();
 
-    const timer = setInterval(() => {
-      // while(this.state.isGameFinished === true){
+    if (this.state.isGameInProgress) return;
 
-      if (this.state.isGameFinished === true) {
+    const delay = this.state.delay
+
+    if (this.state.isGameFinished) {
+      this.setState({ isGameFinished: false })
+      const allItems = document.querySelectorAll('.gameFieldsList li');
+      allItems.forEach(item => {
+        item.classList.remove("active");
+        item.classList.remove("clicked");
+        item.classList.remove("notclicked");
+      })
+    }
+
+    this.setState({ isGameInProgress: true })
+
+    const timer = setInterval(() => {
+
+      if (this.state.clearCycle === true) {
         clearInterval(timer);
+        return
       }
       const allItems = document.querySelectorAll('.gameFieldsList li');
       const allClickedItems = document.querySelectorAll('.clicked');
       const allNotClickedItems = document.querySelectorAll('.notclicked');
 
-      // console.log(allItems)
-
       const items = Array.from(allItems, x => { if (x.classList.contains("active")) return (true); else return (false) });
-      // console.log("items", items);
-
       const indexes = items.reduce((acc, value, ind) => {
         if (value === false) {
           acc.push(ind + 1);
@@ -103,12 +166,12 @@ export default class App extends Component {
         return acc
       }, []);
 
-      // console.log(indexes);
+      const maxNumber = this.state.mode.value * this.state.mode.value
 
       let randomNumber = 0;
       if (indexes.length > 0) {
         while (!(indexes.some(num => num === randomNumber))) {
-          randomNumber = this.randomInteger(1, 16)
+          randomNumber = this.randomInteger(1, maxNumber)
         };
       }
 
@@ -120,7 +183,10 @@ export default class App extends Component {
       if (itemField.classList.contains("active")) {
         return
       }
-
+      if (this.state.clearCycle === true) {
+        clearInterval(timer);
+        return
+      }
       if (this.state.isGameFinished !== true) {
         itemField.classList.add("active")
       }
@@ -128,27 +194,53 @@ export default class App extends Component {
 
       if (!itemField.classList.contains("clicked")) {
         setTimeout(() => {
+          if (this.state.clearCycle === true) return
           itemField.classList.add("notclicked")
-        }, 1000)
+        }, delay)
       }
+      const allItemsLength = allItems.length;
+      const allClickedItemsLength = allClickedItems.length;
+      const allNotClickedItemsLength = allNotClickedItems.length;
 
-      console.log('allItems.length', allItems.length);
-      console.log('allClickedItems.length', allClickedItems.length);
-      console.log('allNotClickedItems.length', allNotClickedItems.length);
-
-
-      if ((allClickedItems.length / allItems.length * 100) > 50) {
+      if ((allClickedItemsLength * 100 / allItemsLength) > 50 && allItemsLength !== 0) {
         clearInterval(timer);
-        this.setState({ gamer: "user", isGameFinished: true })
+        this.setState({
+          winner: this.state.gamer,
+          isGameFinished: true,
+          isGameInProgress: false
+        })
       }
 
-      if ((allNotClickedItems.length / allItems.length * 100) > 50) {
+      if ((allNotClickedItemsLength * 100 / allItemsLength) > 50&& allItemsLength !== 0) {
         clearInterval(timer);
-        this.setState({ gamer: "computer", isGameFinished: true })
+        this.setState({
+          winner: "Computer",
+          isGameFinished: true,
+          isGameInProgress: false
+        })
       }
 
-    // }
-    }, 1000);
+      if (this.state.isGameFinished === true) {
+        let currentDate = new Date();
+        const date = currentDate.toLocaleString()
+
+        const jsonForServer = {
+          winner: this.state.winner,
+          date
+        }
+
+        // API.postWinner(jsonForServer)
+        //   .then(response => {
+        //     console.log('post response', response);
+        //     if (response.status === 200) {
+        //       this.setState({
+        //         isWinnerPosted: true,
+        //       })
+        //     }
+        //   })
+      }
+
+    }, delay);
 
   }
 
@@ -158,7 +250,6 @@ export default class App extends Component {
 
   handleCategoryChange = mode => {
     this.setState({ mode });
-    console.log(`Option selected:`, mode);
   };
 
   render() {
@@ -169,25 +260,32 @@ export default class App extends Component {
       gamer,
       isGameFinished,
       options,
-      mode
+      mode,
+      fieldWidth,
+      label,
+      winner
     } = this.state;
 
     return (
       <div className={styles.appWrap}>
         <div className={styles.mainWrap}>
           <div className={styles.gameWrap}>
+            <h1 className={styles.title}>MAGIC SQUARE</h1>
             <ControlPanel
               handlePlay={this.handlePlay}
+              label={label}
               selectValue={mode}
               handleCategoryChange={this.handleCategoryChange}
               options={options}
               inputValue={gamer}
               handleInputChange={this.handleInputChange}
             />
-
-            {isGameFinished && <h1 className={styles.gameResults}>{gamer} wins! </h1>}
-
+            {isGameFinished ?
+              <h2 className={styles.gameResults}>{winner} wins!</h2> :
+              <h2 className={styles.gameResults}> </h2>
+            }
             <GameField
+              fieldWidth={fieldWidth}
               items={gameFieldItems}
               handleClick={this.handleGameFieldClick}
             />
@@ -197,7 +295,6 @@ export default class App extends Component {
               items={leaderBoardItems}
             />
           </div>
-
         </div>
       </div>
     )

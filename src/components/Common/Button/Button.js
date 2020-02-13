@@ -1,13 +1,14 @@
 import React from 'react'
-
-export default function Button({ handleSubmit }) {
+import styles from './Button.module.scss';
+export default function Button({ handleSubmit, label }) {
   return (
     <div>
       <button
+        className={styles.button}
         type="submit"
         onClick={handleSubmit}
       >
-        play
+        {label}
       </button>
     </div>
   )

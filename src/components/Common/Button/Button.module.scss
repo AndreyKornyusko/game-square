@@ -1,0 +1,19 @@
+.button {
+  height: 40px;
+  padding: 10px;
+  cursor: pointer;
+  background-color: rgb(48, 160, 180);
+  border-radius: 10px;
+  text-transform: uppercase;
+  color: #fff;
+  &:active {
+    outline: none;
+  }
+  &:focus {
+    outline: none;
+  }
+  &:hover {
+    background-color: rgb(120, 202, 216);
+  }
+
+}

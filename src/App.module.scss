@@ -2,6 +2,7 @@
   width: 100%;
   min-height: 100vh;
   margin: 0 auto;
+  padding-top: 10px;
 }
 
 .mainWrap {
@@ -12,10 +13,26 @@
   padding: 20px;
 }
 
+.title {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 30px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
 .gameWrap {
   width: 70%;
 }
 
 .resutlsWrap {
-  width: 30px;
+  width: 30%;
+}
+
+.gameResults {
+  height: 30px;
+  line-height: 30px;
+  margin: 0 auto;
+  margin-bottom: 15px;
+  text-align: center;
 }
