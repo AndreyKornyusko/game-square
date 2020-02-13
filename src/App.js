@@ -38,7 +38,7 @@ const INITIAL_STATE = {
   leaderBoardItems: [
     { id: 1, winner: "", date: "" },
   ],
-  gamer: "User",
+  gamer: "",
   winner: '',
   mode: { value: '5', label: 'easyMode', delay: 2000 },
   options: [
@@ -57,41 +57,13 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    API.getSettings()
-      .then(data => {
-        console.log("settings data", data);
-        const entries = Object.entries(data);
-        console.log("entries", entries);
-
-        const options = entries.reduce((acc, value) => {
-          acc.push(({
-            "value": value[1].field,
-            "label": value[0],
-            "delay": value[1].delay
-          }));
-          return acc
-        }, []);
-        console.log('options', options);
-
-        this.setState({
-          options,
-        })
-
-      })
-    API.getWinners()
-      .then(data => {
-        console.log('winners data', data);
-        this.setState({ leaderBoardItems: data })
-      })
+    this.getSettings();
+    this.getWinners()
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.isWinnerPosted !== this.state.isWinnerPosted) {
-      API.getWinners()
-        .then(data => {
-          console.log('winners data', data);
-          this.setState({ leaderBoardItems: data })
-        })
+      this.getWinners()
     }
 
     if (prevState.mode !== this.state.mode) {
@@ -108,12 +80,34 @@ export default class App extends Component {
     if (prevState.isGameFinished !== this.state.isGameFinished) {
       this.setState({
         label: 'play again',
-        clearCycle: true
       })
     }
-
   }
 
+  getSettings = () => {
+    API.getSettings()
+      .then(data => {
+        const entries = Object.entries(data);
+        const options = entries.reduce((acc, value) => {
+          acc.push(({
+            "value": value[1].field,
+            "label": value[0],
+            "delay": value[1].delay
+          }));
+          return acc
+        }, []);
+        this.setState({
+          options,
+        })
+      })
+  }
+
+  getWinners=()=>{
+    API.getWinners()
+    .then(data => {
+      this.setState({ leaderBoardItems: data })
+    })
+  }
 
   handleGameFieldClick = (e) => {
     const target = e.target
@@ -128,11 +122,59 @@ export default class App extends Component {
     return Math.floor(rand);
   }
 
+  getInactiveIdexes = (allItems) => {
+    const items = Array.from(allItems, x => {
+      if (x.classList.contains("active")) return (true);
+      else return (false)
+    });
+
+    const indexes = items.reduce((acc, value, ind) => {
+      if (value === false) {
+        acc.push(ind + 1);
+        return acc
+      }
+      return acc
+    }, []);
+    return indexes
+  }
+
+  getRandomNumer = (indexes) => {
+    const maxNumber = this.state.mode.value * this.state.mode.value
+    let randomNumber = 0;
+    if (indexes.length > 0) {
+      while (!(indexes.some(num => num === randomNumber))) {
+        randomNumber = this.randomInteger(1, maxNumber)
+      };
+    }
+    return randomNumber
+  }
+
+  postWinner = (jsonForServer) => {
+    API.postWinner(jsonForServer)
+      .then(response => {
+        console.log('post response', response);
+        if (response.status === 200) {
+          this.setState({
+            isWinnerPosted: true,
+          })
+        }
+      })
+  }
+
+  getJsonForServer = () => {
+    let currentDate = new Date();
+    const date = currentDate.toLocaleString()
+
+    const jsonForServer = {
+      winner: this.state.winner,
+      date
+    }
+    return jsonForServer
+  }
+
   handlePlay = (e) => {
     e.preventDefault();
-
     if (this.state.isGameInProgress) return;
-
     const delay = this.state.delay
 
     if (this.state.isGameFinished) {
@@ -148,96 +190,83 @@ export default class App extends Component {
     this.setState({ isGameInProgress: true })
 
     const timer = setInterval(() => {
-
-      if (this.state.clearCycle === true) {
-        clearInterval(timer);
-        return
-      }
       const allItems = document.querySelectorAll('.gameFieldsList li');
       const allClickedItems = document.querySelectorAll('.clicked');
       const allNotClickedItems = document.querySelectorAll('.notclicked');
+      const allItemsLength = allItems.length;
+      const allClickedItemsLength = allClickedItems.length;
+      const allNotClickedItemsLength = allNotClickedItems.length;
 
-      const items = Array.from(allItems, x => { if (x.classList.contains("active")) return (true); else return (false) });
-      const indexes = items.reduce((acc, value, ind) => {
-        if (value === false) {
-          acc.push(ind + 1);
-          return acc
-        }
-        return acc
-      }, []);
 
-      const maxNumber = this.state.mode.value * this.state.mode.value
-
-      let randomNumber = 0;
-      if (indexes.length > 0) {
-        while (!(indexes.some(num => num === randomNumber))) {
-          randomNumber = this.randomInteger(1, maxNumber)
-        };
+      if (this.state.isGameFinished === true) {
+        clearInterval(timer);
+        return
       }
 
-      if (indexes.length === 0) { clearInterval(timer) }
+      const indexes = this.getInactiveIdexes(allItems)
 
+      if (indexes.length === 0) {
+        clearInterval(timer);
+        return
+      }
+
+      const randomNumber = this.getRandomNumer(indexes)
       const selector = `.gameFieldsList li:nth-child(${randomNumber})`
       const itemField = document.querySelector(selector)
 
       if (itemField.classList.contains("active")) {
         return
       }
-      if (this.state.clearCycle === true) {
-        clearInterval(timer);
-        return
-      }
-      if (this.state.isGameFinished !== true) {
-        itemField.classList.add("active")
-      }
 
-
-      if (!itemField.classList.contains("clicked")) {
-        setTimeout(() => {
-          if (this.state.clearCycle === true) return
-          itemField.classList.add("notclicked")
-        }, delay)
-      }
-      const allItemsLength = allItems.length;
-      const allClickedItemsLength = allClickedItems.length;
-      const allNotClickedItemsLength = allNotClickedItems.length;
-
-      if ((allClickedItemsLength * 100 / allItemsLength) > 50 && allItemsLength !== 0) {
+      if ((allClickedItemsLength * 100 / allItemsLength) > 50 &&
+        allItemsLength !== 0) {
         clearInterval(timer);
         this.setState({
           winner: this.state.gamer,
           isGameFinished: true,
           isGameInProgress: false
         })
+        allItems.forEach(item => {
+          item.classList.remove("active");
+        })
       }
 
-      if ((allNotClickedItemsLength * 100 / allItemsLength) > 50&& allItemsLength !== 0) {
+      if ((allNotClickedItemsLength * 100 / allItemsLength) > 50 &&
+        allItemsLength !== 0) {
         clearInterval(timer);
         this.setState({
           winner: "Computer",
           isGameFinished: true,
           isGameInProgress: false
         })
+        allItems.forEach(item => {
+          item.classList.remove("active");
+        })
       }
 
       if (this.state.isGameFinished === true) {
-        let currentDate = new Date();
-        const date = currentDate.toLocaleString()
+        const jsonForServer = this.getJsonForServer()
+        this.postWinner(jsonForServer)
+      }
 
-        const jsonForServer = {
-          winner: this.state.winner,
-          date
+      if (this.state.isGameFinished === true) {
+        clearInterval(timer);
+        return
+      }
+
+      setTimeout(() => {
+        if (this.state.isGameFinished === true) {
+          clearInterval(timer);
+          return
         }
+        itemField.classList.add("active")
+      }, 2)
 
-        // API.postWinner(jsonForServer)
-        //   .then(response => {
-        //     console.log('post response', response);
-        //     if (response.status === 200) {
-        //       this.setState({
-        //         isWinnerPosted: true,
-        //       })
-        //     }
-        //   })
+      if (!itemField.classList.contains("clicked")) {
+        setTimeout(() => {
+          if (this.state.isGameFinished === true) return
+          itemField.classList.add("notclicked")
+        }, delay)
       }
 
     }, delay);
@@ -249,11 +278,21 @@ export default class App extends Component {
   }
 
   handleCategoryChange = mode => {
-    this.setState({ mode });
+    this.setState({
+      mode,
+      isGameFinished: false,
+      delay: this.state.mode.delay
+    });
+    const allItems = document.querySelectorAll('.gameFieldsList li');
+    allItems.forEach(item => {
+      item.classList.remove("active");
+      item.classList.remove("clicked");
+      item.classList.remove("notclicked");
+    })
+
   };
 
   render() {
-    console.log('state', this.state);
     const {
       gameFieldItems,
       leaderBoardItems,
