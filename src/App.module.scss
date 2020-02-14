@@ -72,10 +72,20 @@
 
 .gameWrap {
   width: 70%;
+  margin-bottom: 20px;
+  text-align: center;
+  @media screen and (min-width: 768px) {
+    margin-bottom: 0;
+  }
 }
 
 .resutlsWrap {
-  width: 30%;
+  width: 320px;
+  text-align: center;
+
+  @media screen and (min-width: 768px) {
+    width: 30%;
+  }
 }
 
 .gameResults {

@@ -202,7 +202,10 @@ export default class App extends Component {
       })
     }
 
-    this.setState({ isGameInProgress: true })
+    this.setState({
+      isGameInProgress: true,
+      isWinnerPosted: false
+    })
 
     const timer = setInterval(() => {
       const allItems = document.querySelectorAll('.gameFieldsList li');
@@ -263,13 +266,11 @@ export default class App extends Component {
         return
       }
 
-      setTimeout(() => {
-        if (this.state.isGameFinished === true) {
-          clearInterval(timer);
-          return
-        }
-        itemField.classList.add("active")
-      }, 2)
+      if (this.state.isGameFinished === true) {
+        clearInterval(timer);
+        return
+      }
+      itemField.classList.add("active")
 
       setTimeout(() => {
         if (itemField.classList.contains("clicked")) return
@@ -332,12 +333,12 @@ export default class App extends Component {
             />
             {isGameFinished ?
               <div className={styles.mainResults}>
-                <div className={styles.gameResults}>{winner===''? "User": winner} wins!</div>
+                <div className={styles.gameResults}>{winner === '' ? "User" : winner} wins!</div>
                 <div className={styles.resultsContainer}>
                   <div className={styles.mainPoinsWrap}>
                     <div className={styles.poinsWrap}>
                       <div className={styles.userName}>
-                        {winner===''? "User": winner}
+                        {winner === '' ? "User" : winner}
                       </div>
                       <div className={styles.points}>
                         {userPoints}
