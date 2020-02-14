@@ -2,7 +2,7 @@ import React from 'react'
 import styles from './Button.module.scss';
 export default function Button({ handleSubmit, label }) {
   return (
-    <div>
+    <div className={styles.wrapper}>
       <button
         className={styles.button}
         type="submit"
